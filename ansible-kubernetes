@@ -19,7 +19,7 @@ node{
     }
     
     stage('Push image to docker hub'){
-        sh "docker login -u calltomdinesh -p Dheeru02081982"
+        sh "docker login -u admin -p admin123"
         sh "docker push ${image_name}"
         
     }
