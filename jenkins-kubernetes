@@ -1,0 +1,40 @@
+node{
+    def version = 1.0
+    image_name = "calltomdinesh/myweb:$version"
+    mvnHome = tool name: 'maven-3', type: 'maven'
+    def mvn = "${mvnHome}/bin/mvn"
+    
+    stage('SCM Checkout'){
+      git 'https://github.com/javahometech/my-app' 
+    }
+    
+    stage('Build war file'){
+        sh "${mvn} clean package"
+        sh 'mv target/myweb*.war target/myweb.war'
+    }
+    
+    stage('Create Docker Image'){
+        
+        sh "docker build -t ${image_name} ."
+    }
+    
+    stage('Push image to docker hub'){
+        sh "docker login -u calltomdinesh -p Dheeru02081982"
+        sh "docker push ${image_name}"
+        
+    }
+    
+    stage('Deploy to Kubernetes'){
+       def deploy = "kubectl create -f webapp-deploy.yaml"
+       def service = "kubectl create -f service-demo.yaml"
+       def master_ssh = "ssh ubuntu@13.232.157.174"
+                      
+       sshagent (credentials: ['kube-ubuntu']) {
+         sh "ssh -o StrictHostKeyChecking=no ubuntu@13.232.157.174 ${deploy}"
+         sh "${master_ssh} ${service}"
+       }
+       
+      
+        
+    }
+}
